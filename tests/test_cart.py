@@ -65,3 +65,15 @@ def test_cart_clear(client):
     html = response.get_data(as_text=True)
     assert 'Shopping cart cleared.' in html
     assert 'Your Shopping Cart is Empty' in html
+def test_add_to_cart_with_zero_quantity_adds_one_item(client):
+    """Adding a product with quantity zero should default to one item."""
+    response = client.post(
+        '/cart/add/1',
+        data={'quantity': 0},
+        follow_redirects=True
+    )
+
+    assert response.status_code == 200
+
+    with client.session_transaction() as session:
+        assert session['cart']['1'] == 1
