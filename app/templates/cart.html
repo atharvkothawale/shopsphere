@@ -119,9 +119,15 @@
             </div>
             {% endif %}
 
+            {% if current_user %}
             <a href="{{ url_for('checkout.checkout') }}" class="btn-checkout-primary" id="btn-proceed-checkout">
                 Proceed to Checkout &rarr;
             </a>
+            {% else %}
+            <a href="{{ url_for('auth.login', next=url_for('checkout.checkout')) }}" class="btn-checkout-primary" id="btn-login-to-checkout" style="background: var(--saffron);">
+                Login to Checkout &rarr;
+            </a>
+            {% endif %}
 
             <div class="checkout-guarantee">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

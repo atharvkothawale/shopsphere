@@ -91,6 +91,21 @@ def init_db_command():
     click.echo("Initialized and seeded the ShopSphere database.")
 
 
+def ensure_users_table(db):
+    """Safely migrate database to ensure users table and index exist without disturbing existing data."""
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    db.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
+    db.commit()
+
+
 def init_app(app):
     """Register database functions with the Flask app."""
     app.teardown_appcontext(close_db)
@@ -106,5 +121,8 @@ def init_app(app):
             if not table_exists:
                 init_db()
                 seed_db()
+            else:
+                ensure_users_table(db)
         except Exception as exc:
             app.logger.warning(f"Database bootstrap warning: {exc}")
+

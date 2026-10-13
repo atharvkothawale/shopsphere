@@ -71,6 +71,29 @@
                     Store
                 </a>
 
+                {% if current_user %}
+                    <a href="{{ url_for('auth.account') }}" class="nav-link-auth" id="nav-account-link">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>My Account</span>
+                    </a>
+                    <form action="{{ url_for('auth.logout') }}" method="POST" class="nav-logout-form" style="margin: 0; display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="nav-link-auth nav-btn-logout" id="nav-logout-btn">
+                            Logout
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link-auth" id="nav-login-link">
+                        Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-link-auth nav-link-register" id="nav-register-link">
+                        Register
+                    </a>
+                {% endif %}
+
                 <a href="{{ url_for('cart.view_cart') }}" class="cart-button" id="cart-nav-btn">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="9" cy="21" r="1"></circle>

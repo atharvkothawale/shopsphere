@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}My Account | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="account-page-wrapper">
+    <div class="account-header-section">
+        <div class="account-welcome">
+            <div class="account-avatar">
+                {{ user.name[:1]|upper }}
+            </div>
+            <div>
+                <h1 class="account-name">{{ user.name }}</h1>
+                <p class="account-email">{{ user.email }}</p>
+            </div>
+        </div>
+        <div class="account-actions">
+            <form action="{{ url_for('auth.logout') }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-logout" id="account-logout-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Sign Out</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="account-grid">
+        <!-- Account Summary Card -->
+        <div class="account-card profile-details-card">
+            <h2 class="account-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Profile Information
+            </h2>
+            <div class="detail-rows">
+                <div class="detail-row">
+                    <span class="detail-label">Full Name</span>
+                    <span class="detail-value" id="profile-name">{{ user.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email Address</span>
+                    <span class="detail-value" id="profile-email">{{ user.email }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Member Since</span>
+                    <span class="detail-value">{{ user.created_at }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Account Status</span>
+                    <span class="detail-value status-active">Active Customer</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Shopping Card -->
+        <div class="account-card quick-shop-card">
+            <h2 class="account-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Current Shopping Cart
+            </h2>
+            <p class="account-card-desc">
+                You currently have <strong>{{ cart_count }}</strong> item{{ 's' if cart_count != 1 else '' }} in your cart.
+            </p>
+            <div class="account-card-buttons">
+                <a href="{{ url_for('cart.view_cart') }}" class="btn-account-primary">
+                    View Shopping Cart
+                </a>
+                <a href="{{ url_for('catalog.index') }}" class="btn-account-secondary">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order History Section -->
+    <div class="account-card orders-history-card">
+        <h2 class="account-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Recent Orders
+        </h2>
+
+        {% if orders %}
+        <div class="orders-table-wrapper">
+            <table class="account-orders-table">
+                <thead>
+                    <tr>
+                        <th>Order Number</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="order-id">#{{ order.order_number }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td class="order-amount">{{ order.total_amount|inr }}</td>
+                        <td>
+                            <span class="order-badge status-{{ order.status|lower }}">{{ order.status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-orders-box">
+            <p>You haven't placed any orders yet. Discover our curated collection today!</p>
+            <a href="{{ url_for('catalog.index') }}" class="btn-account-primary">Start Shopping</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

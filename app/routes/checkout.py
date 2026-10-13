@@ -1,7 +1,7 @@
 import re
 import uuid
 import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort, current_app, g
 from app.db import get_db
 from app.routes.cart import get_cart_summary
 
@@ -42,6 +42,11 @@ def validate_checkout_form(data):
 @checkout_bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     """Handle demo checkout process: form validation, order creation, and cart persistence."""
+    if current_app.config.get('REQUIRE_LOGIN_TO_SHOP', True):
+        if 'user_id' not in session or not getattr(g, 'user', None):
+            flash("Please log in first to proceed to checkout.", "warning")
+            return redirect(url_for('auth.login', next=url_for('checkout.checkout')))
+
     cart_summary = get_cart_summary()
     
     if not cart_summary['items']:
@@ -112,7 +117,14 @@ def checkout():
         flash(f"Order #{order_number} placed successfully!", "success")
         return redirect(url_for('checkout.order_confirmation', order_number=order_number))
 
-    return render_template('checkout.html', cart=cart_summary, form_data={})
+    initial_form_data = {}
+    if getattr(g, 'user', None):
+        initial_form_data = {
+            'customer_name': g.user['name'],
+            'customer_email': g.user['email']
+        }
+
+    return render_template('checkout.html', cart=cart_summary, form_data=initial_form_data)
 
 
 @checkout_bp.route('/order/confirmation/<order_number>')

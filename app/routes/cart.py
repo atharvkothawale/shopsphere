@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, current_app, g
 from app.db import get_db
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
@@ -84,6 +84,11 @@ def view_cart():
 @cart_bp.route('/add/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     """Add a product to the cart or increment its quantity."""
+    if current_app.config.get('REQUIRE_LOGIN_TO_SHOP', True):
+        if 'user_id' not in session or not getattr(g, 'user', None):
+            flash("Please log in first to shop and add products to your cart.", "warning")
+            return redirect(url_for('auth.login', next=request.referrer or url_for('catalog.index')))
+
     db = get_db()
     product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
     
