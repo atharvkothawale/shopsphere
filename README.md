@@ -192,41 +192,64 @@ curl http://localhost:5000/api/health
 
 ### 4. Kubernetes Deployment on Minikube
 
-#### Start Minikube:
-```bash
-minikube start
-```
+### Kubernetes Configuration Details
 
-#### Apply Kubernetes Manifests:
-```bash
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-```
+The Kubernetes manifests are located in the `k8s/` directory.
 
-#### Check Deployment & Pods Status:
-```bash
-kubectl get deployments
-kubectl get pods -l app=shopsphere
-kubectl get svc shopsphere-service
-```
+**Deployment (`deployment.yaml`)**
+- Deployment name: `shopsphere-deployment`
+- Replicas: 2
+- Container image: `shopsphere:1.0`
+- Container port: `5000`
+- Image pull policy: `IfNotPresent`
+- Resource requests per pod: 128 MiB memory and 100m CPU.
+- Resource limits per pod: 256 MiB memory and 250m CPU.
+- Readiness and liveness probes check `/api/health` on port 5000.
+- Environment variables are loaded from `shopsphere-config`.
 
-#### Access via Minikube Service URL:
-```bash
-minikube service shopsphere-service --url
-```
-Or browse to `http://<minikube-ip>:30080`.
+**Service (`service.yaml`)**
+- Service name: `shopsphere-service`
+- Type: `NodePort`
+- Service port: `5000`
+- Target port: `5000`
+- NodePort: `30080`
+- Selects application pods using the label `app: shopsphere`.
+
+**ConfigMap (`configmap.yaml`)**
+
+The `shopsphere-config` ConfigMap defines these environment variables:
+
+| Variable | Value |
+|---|---|
+| `PORT` | `5000` |
+| `FLASK_ENV` | `production` |
+| `DATABASE_PATH` | `/app/instance/shopsphere.db` |
 
 ---
 
 ### 5. Jenkins CI/CD Pipeline
+## Jenkins Continuous Integration
 
-The included `Jenkinsfile` automates:
-1. **SCM Checkout**: Clones latest code from the GitHub branch.
-2. **Environment & Dependency Setup**: Installs `requirements.txt`.
-3. **Automated Testing**: Runs `pytest` and publishes JUnit test results.
-4. **Docker Image Build**: Builds and tags the Docker image (`shopsphere:${BUILD_NUMBER}`).
-5. **Kubernetes Rollout**: Applies `k8s/` manifests and monitors rollout status.
+The project includes a `Jenkinsfile` that defines a Jenkins pipeline
+for automating the ShopSphere build, testing, and deployment process.
+
+### Pipeline Stages
+
+1. **Checkout SCM:** Retrieves the source code from the configured Git repository.
+2. **Environment & Dependencies:** Verifies the Python environment and installs the dependencies listed in `requirements.txt`.
+3. **Automated Testing (Pytest):** Executes the automated test suite using Pytest and generates a JUnit test report.
+4. **Docker Build & Image Packaging:** Builds Docker images tagged with the build number and `latest`.
+5. **Deploy to Kubernetes (Minikube):** Applies the Kubernetes ConfigMap, Deployment, and Service manifests, then checks the deployment rollout status.
+
+### Pipeline Post Actions
+
+- **Success:** Displays a message indicating that the pipeline completed successfully.
+- **Failure:** Displays a message indicating that the pipeline encountered an error.
+- **Always:** Attempts to clean the Jenkins workspace after the pipeline finishes.
+
+The pipeline is defined in the root-level `Jenkinsfile`.
+Its execution depends on the availability and configuration of the
+required tools, dependencies, Jenkins plugins, Docker, and Kubernetes.
 
 ---
 
@@ -290,13 +313,13 @@ The team uses Git and GitHub to manage project changes.
 6. Create a Pull Request targeting main.
 7. Review and merge the Pull Request.
 
-## Docker
+## Database Initialization
 
-Build the Docker image:
+ShopSphere uses SQLite for database storage and Python's built-in `sqlite3` module to manage database connections. The database path is configured through the Flask application's configuration.
 
-    docker build -t shopsphere:1.0 .
+### Database Connection
 
-Run the container:
+The `app/db.py` file manages database connections using the `get_db()` function. It stores the connection in Flask's `g` object, enables row-based access with `sqlite3.Row`, and enforces foreign key constraints.
 
     docker run -p 5000:5000 shopsphere:1.0
 
