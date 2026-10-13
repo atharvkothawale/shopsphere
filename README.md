@@ -220,13 +220,28 @@ Or browse to `http://<minikube-ip>:30080`.
 ---
 
 ### 5. Jenkins CI/CD Pipeline
+## Jenkins Continuous Integration
 
-The included `Jenkinsfile` automates:
-1. **SCM Checkout**: Clones latest code from the GitHub branch.
-2. **Environment & Dependency Setup**: Installs `requirements.txt`.
-3. **Automated Testing**: Runs `pytest` and publishes JUnit test results.
-4. **Docker Image Build**: Builds and tags the Docker image (`shopsphere:${BUILD_NUMBER}`).
-5. **Kubernetes Rollout**: Applies `k8s/` manifests and monitors rollout status.
+The project includes a `Jenkinsfile` that defines a Jenkins pipeline
+for automating the ShopSphere build, testing, and deployment process.
+
+### Pipeline Stages
+
+1. **Checkout SCM:** Retrieves the source code from the configured Git repository.
+2. **Environment & Dependencies:** Verifies the Python environment and installs the dependencies listed in `requirements.txt`.
+3. **Automated Testing (Pytest):** Executes the automated test suite using Pytest and generates a JUnit test report.
+4. **Docker Build & Image Packaging:** Builds Docker images tagged with the build number and `latest`.
+5. **Deploy to Kubernetes (Minikube):** Applies the Kubernetes ConfigMap, Deployment, and Service manifests, then checks the deployment rollout status.
+
+### Pipeline Post Actions
+
+- **Success:** Displays a message indicating that the pipeline completed successfully.
+- **Failure:** Displays a message indicating that the pipeline encountered an error.
+- **Always:** Attempts to clean the Jenkins workspace after the pipeline finishes.
+
+The pipeline is defined in the root-level `Jenkinsfile`.
+Its execution depends on the availability and configuration of the
+required tools, dependencies, Jenkins plugins, Docker, and Kubernetes.
 
 ---
 
