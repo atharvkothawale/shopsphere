@@ -323,3 +323,26 @@ The `app/db.py` file manages database connections using the `get_db()` function.
 
     docker run -p 5000:5000 shopsphere:1.0
 
+## Application Health Check
+
+The application exposes a health-check endpoint to verify server status and database connectivity.
+
+- **Endpoint:** `/api/health`
+- **Method:** `GET`
+- **Port / Local URL:** `http://127.0.0.1:5000/api/health`
+
+### Behavior & Database Verification
+
+When requested, the endpoint connects to the SQLite database and runs real-time queries to count loaded categories and products before returning an HTTP `200` response.
+
+### Example Response (`200 OK`)
+
+```json
+{
+  "status": "healthy",
+  "service": "ShopSphere",
+  "version": "1.0.0",
+  "database": "connected",
+  "categories_loaded": 5,
+  "products_loaded": 20
+}
